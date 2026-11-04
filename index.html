@@ -4,14 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="description"
-content="2026 HVAC Engineering Expert Seminar 일정, 강사, 카카오톡 오픈채팅방 및 세션별 안내">
+<meta
+  name="description"
+  content="2026 HVAC Engineering Expert Seminar 일정, 강사, 카카오톡 오픈채팅방 및 세션별 안내"
+>
 
-<meta property="og:title"
-content="2026 HVAC Engineering Expert Seminar">
+<meta property="og:title" content="2026 HVAC Engineering Expert Seminar">
 
-<meta property="og:description"
-content="2026년 11월 16일(월) 국민대학교 본부관(별관) 학술회의장">
+<meta
+  property="og:description"
+  content="2026년 11월 16일(월) 국민대학교 본부관(별관) 학술회의장"
+>
 
 <meta name="theme-color" content="#050505">
 
@@ -26,6 +29,9 @@ const CHECKIN_URL =
 const KAKAO_OPEN_CHAT_URL =
 'https://open.kakao.com/o/gfwiqxVi';
 
+/* =========================================================
+   스마트 URL 처리
+========================================================= */
 (function () {
   if (!window.location.hash) return;
 
@@ -56,511 +62,488 @@ const KAKAO_OPEN_CHAT_URL =
 ========================================================= */
 (function () {
 
-function esc(v) {
-  return window.HVAC
-    ? HVAC.esc(v)
-    : String(v == null ? '' : v);
-}
-
-function readJson(key) {
-  try {
-    return JSON.parse(
-      localStorage.getItem(key) || 'null'
-    );
-  } catch (e) {
-    return null;
-  }
-}
-
-let staticSpeakers = null;
-
-function nameKey(str) {
-  return String(str || '')
-    .replace(/\s+/g, '')
-    .slice(0, 3);
-}
-
-/* 정적 HTML의 강사 정보 저장 */
-function captureStaticSpeakers() {
-
-  if (staticSpeakers) return;
-
-  staticSpeakers = {};
-
-  document
-    .querySelectorAll('#speakers .speaker-card')
-    .forEach(function (card) {
-
-      const name =
-        (card.querySelector('h3') || {}).textContent || '';
-
-      const img =
-        card.querySelector('.speaker-photo img');
-
-      staticSpeakers[nameKey(name)] = {
-
-        org:
-          ((card.querySelector('.org') || {}).textContent || '')
-            .trim(),
-
-        bullets:
-          Array.from(
-            card.querySelectorAll('ul li')
-          ).map(function (li) {
-            return li.textContent.trim();
-          }),
-
-        image:
-          img ? img.getAttribute('src') : '',
-
-        imageAlt:
-          img ? img.getAttribute('alt') : ''
-      };
-    });
-}
-
-/* 기존 localStorage 자동 보정 */
-function migrate(data) {
-
-  let migrated = false;
-
-  if (
-    data.hero &&
-    data.hero.totalSchedule === '09:00 ~ 17:50'
-  ) {
-    data.hero.totalSchedule = '09:00 ~ 18:00';
-    migrated = true;
+  function esc(v) {
+    return window.HVAC
+      ? HVAC.esc(v)
+      : String(v == null ? '' : v);
   }
 
-  (data.sessions || []).forEach(function (s) {
-
-    if (
-      s.id === 's2' &&
-      s.type === 'session' &&
-      (s.sublabel || '').includes('Opening')
-    ) {
-      s.type = 'general';
-      migrated = true;
-    }
-
-    if (
-      s.title ===
-      '건축설비 측면에서 바라보는 공동주택 공기열원 히트펌프의 역할과 과제'
-    ) {
-      s.title =
-        '헬로우 히트펌프, 굿바이 보일러';
-      migrated = true;
-    }
-
-    if (
-      s.title === '과학 및 인문학 강의'
-    ) {
-      s.title =
-        '테라포밍 또는 찬란한 멸종-그래도 우리는 지구에 살아야 한다';
-      migrated = true;
-    }
-
-    if (
-      s.id === 's14' &&
-      s.time === '17:40 ~ 17:50'
-    ) {
-      s.time = '17:40 ~ 18:00';
-      s.minute = '20';
-      migrated = true;
-    }
-
-    if (
-      (s.title || '').includes('입실') &&
-      s.note === 'QR 코드 스캔'
-    ) {
-      s.note = '';
-      migrated = true;
-    }
-
-    if (
-      s.title === 'Opening' &&
-      s.speaker === 'ES엔지니어링담당'
-    ) {
-      s.speaker = '-';
-      migrated = true;
-    }
-
-    if ((s.speaker || '').includes('이성혁')) {
-
-      const newBio = [
-        '현) 중앙대학교 기계공학부 교수',
-        '현) 대한기계학회 부회장',
-        '전) 중앙대학교 차세대에너지안전연구소 소장',
-        '전) 중앙대학교 기계공학부 학과장'
-      ];
-
-      if (
-        JSON.stringify(s.bio || []) !==
-        JSON.stringify(newBio)
-      ) {
-        s.bio = newBio;
-        migrated = true;
-      }
-    }
-
-    if ((s.speaker || '').includes('조홍종')) {
-
-      const newBio = [
-        '현) 한국자원경제학회 회장',
-        '현) 국가기후위기대응위원회 위원',
-        '현) 산업통상부 정책자문위원회 위원',
-        '현) 제 12차 전력수급기본계획 위원',
-        '현) 전력비용평가위원회 위원'
-      ];
-
-      if (
-        JSON.stringify(s.bio || []) !==
-        JSON.stringify(newBio)
-      ) {
-        s.bio = newBio;
-        migrated = true;
-      }
-    }
-  });
-
-  if (migrated) {
+  function readJson(key) {
     try {
-      localStorage.setItem(
-        'hvac_schedule_settings',
-        JSON.stringify(data)
+      return JSON.parse(
+        localStorage.getItem(key) || 'null'
       );
-    } catch (e) {}
-  }
-}
-
-function cleanSpeaker(sp) {
-
-  return String(sp || '')
-    .replace(/\s*\([^)]*\)\s*$/, '')
-    .trim();
-}
-
-function speakerOrg(s) {
-
-  if (s.org) return s.org;
-
-  const m =
-    String(s.speaker || '')
-      .match(/\(([^)]+)\)/);
-
-  if (m && m[1]) {
-    return m[1].trim();
-  }
-
-  return s.note || '';
-}
-
-function isLecture(s) {
-
-  return (
-    s.type === 'session' &&
-    !(s.sublabel || '').includes('Opening') &&
-    !(s.title || '').includes('오프닝') &&
-    s.title !== 'Opening' &&
-    s.speaker &&
-    s.speaker !== '-'
-  );
-}
-
-function renderHero(h) {
-
-  if (!h) return;
-
-  const elEyebrow =
-    document.querySelector('.eyebrow');
-
-  if (
-    elEyebrow &&
-    (h.eyebrow || h.scheduleDate)
-  ) {
-    elEyebrow.textContent =
-      h.eyebrow ||
-      (
-        'ENGINEERING INSIGHT DAY · ' +
-        h.scheduleDate
-      );
-  }
-
-  const elYear =
-    document.querySelector('.year');
-
-  if (elYear && h.year) {
-    elYear.textContent = h.year;
-  }
-
-  const elH1 =
-    document.querySelector('.hero h1');
-
-  if (
-    elH1 &&
-    (h.title || h.titleSpan)
-  ) {
-    elH1.innerHTML =
-      esc(h.title || 'HVAC Engineering') +
-      '<span>' +
-      esc(h.titleSpan || 'Expert Seminar') +
-      '</span>';
-  }
-
-  const elCopy =
-    document.querySelector('.hero-copy');
-
-  if (elCopy && h.copy) {
-    elCopy.textContent = h.copy;
-  }
-
-  const metaStrongs =
-    document.querySelectorAll(
-      '.hero .meta > div strong'
-    );
-
-  const vals = [
-    h.entryTime,
-    h.totalSchedule,
-    h.location,
-    h.venue
-  ];
-
-  metaStrongs.forEach(function(el, i) {
-    if (vals[i]) {
-      el.textContent = vals[i];
+    } catch (e) {
+      return null;
     }
-  });
-}
-
-function renderAgenda(sessions) {
-
-  const shell =
-    document.querySelector(
-      '#agenda .agenda-shell'
-    );
-
-  if (
-    !shell ||
-    !sessions.length
-  ) {
-    return;
   }
 
-  shell
-    .querySelectorAll('.agenda-row')
-    .forEach(function(r) {
-      r.remove();
+  let staticSpeakers = null;
+
+  function nameKey(str) {
+    return String(str || '')
+      .replace(/\s+/g, '')
+      .slice(0, 3);
+  }
+
+  function captureStaticSpeakers() {
+    if (staticSpeakers) return;
+
+    staticSpeakers = {};
+
+    document
+      .querySelectorAll('#speakers .speaker-card')
+      .forEach(function (card) {
+
+        const name =
+          (card.querySelector('h3') || {}).textContent || '';
+
+        const img =
+          card.querySelector('.speaker-photo img');
+
+        staticSpeakers[nameKey(name)] = {
+          org:
+            ((card.querySelector('.org') || {}).textContent || '')
+              .trim(),
+
+          bullets:
+            Array.from(
+              card.querySelectorAll('ul li')
+            ).map(function (li) {
+              return li.textContent.trim();
+            }),
+
+          image:
+            img ? img.getAttribute('src') : '',
+
+          imageAlt:
+            img ? img.getAttribute('alt') : ''
+        };
+      });
+  }
+
+  function migrate(data) {
+    let migrated = false;
+
+    if (
+      data.hero &&
+      data.hero.totalSchedule === '09:00 ~ 17:50'
+    ) {
+      data.hero.totalSchedule = '09:00 ~ 18:00';
+      migrated = true;
+    }
+
+    (data.sessions || []).forEach(function (s) {
+
+      if (
+        s.id === 's2' &&
+        s.type === 'session' &&
+        (s.sublabel || '').includes('Opening')
+      ) {
+        s.type = 'general';
+        migrated = true;
+      }
+
+      if (
+        s.title ===
+        '건축설비 측면에서 바라보는 공동주택 공기열원 히트펌프의 역할과 과제'
+      ) {
+        s.title =
+          '헬로우 히트펌프, 굿바이 보일러';
+        migrated = true;
+      }
+
+      if (s.title === '과학 및 인문학 강의') {
+        s.title =
+          '테라포밍 또는 찬란한 멸종-그래도 우리는 지구에 살아야 한다';
+        migrated = true;
+      }
+
+      if (
+        s.id === 's14' &&
+        s.time === '17:40 ~ 17:50'
+      ) {
+        s.time = '17:40 ~ 18:00';
+        s.minute = '20';
+        migrated = true;
+      }
+
+      if (
+        (s.title || '').includes('입실') &&
+        s.note === 'QR 코드 스캔'
+      ) {
+        s.note = '';
+        migrated = true;
+      }
+
+      if (
+        s.title === 'Opening' &&
+        s.speaker === 'ES엔지니어링담당'
+      ) {
+        s.speaker = '-';
+        migrated = true;
+      }
+
+      if ((s.speaker || '').includes('이성혁')) {
+        const newBio = [
+          '현) 중앙대학교 기계공학부 교수',
+          '현) 대한기계학회 부회장',
+          '전) 중앙대학교 차세대에너지안전연구소 소장',
+          '전) 중앙대학교 기계공학부 학과장'
+        ];
+
+        if (
+          JSON.stringify(s.bio || []) !==
+          JSON.stringify(newBio)
+        ) {
+          s.bio = newBio;
+          migrated = true;
+        }
+      }
+
+      if ((s.speaker || '').includes('조홍종')) {
+        const newBio = [
+          '현) 한국자원경제학회 회장',
+          '현) 국가기후위기대응위원회 위원',
+          '현) 산업통상부 정책자문위원회 위원',
+          '현) 제 12차 전력수급기본계획 위원',
+          '현) 전력비용평가위원회 위원'
+        ];
+
+        if (
+          JSON.stringify(s.bio || []) !==
+          JSON.stringify(newBio)
+        ) {
+          s.bio = newBio;
+          migrated = true;
+        }
+      }
     });
 
-  sessions.forEach(function(s) {
-
-    const cls =
-      ['session','break','meal']
-        .includes(s.type)
-        ? s.type
-        : '';
-
-    const row =
-      document.createElement('div');
-
-    row.className =
-      ('agenda-row ' + cls).trim();
-
-    row.innerHTML =
-
-      '<div class="time">' +
-      esc(s.time) +
-      '</div>' +
-
-      '<div class="minute">' +
-      esc(s.minute || '-') +
-      '</div>' +
-
-      '<div class="topic">' +
-      esc(s.title) +
-      '</div>' +
-
-      '<div class="speaker">' +
-      esc(cleanSpeaker(s.speaker) || '-') +
-      '</div>' +
-
-      '<div class="note">' +
-      esc(s.note || '') +
-      '</div>';
-
-    shell.appendChild(row);
-  });
-}
-
-/* =========================================================
-   강사 프로필 동적 렌더링
-   사진 정보도 정적 카드에서 유지
-========================================================= */
-function renderSpeakers(sessions) {
-
-  const grid =
-    document.querySelector(
-      '#speakers .speaker-grid'
-    );
-
-  const lectures =
-    sessions.filter(isLecture);
-
-  if (
-    !grid ||
-    !lectures.length
-  ) {
-    return;
+    if (migrated) {
+      try {
+        localStorage.setItem(
+          'hvac_schedule_settings',
+          JSON.stringify(data)
+        );
+      } catch (e) {}
+    }
   }
 
-  captureStaticSpeakers();
+  function cleanSpeaker(sp) {
+    return String(sp || '')
+      .replace(/\s*\([^)]*\)\s*$/, '')
+      .trim();
+  }
 
-  grid.innerHTML =
-    lectures.map(function(s) {
+  function speakerOrg(s) {
+    if (s.org) return s.org;
 
-      const name =
-        cleanSpeaker(s.speaker);
+    const m =
+      String(s.speaker || '').match(/\(([^)]+)\)/);
 
-      const fallback =
-        staticSpeakers[nameKey(name)] || {
-          org: '',
-          bullets: [],
-          image: '',
-          imageAlt: ''
-        };
+    if (m && m[1]) {
+      return m[1].trim();
+    }
 
-      const org =
-        speakerOrg(s) ||
-        fallback.org;
+    return s.note || '';
+  }
 
-      const bio =
-        Array.isArray(s.bio) &&
-        s.bio.length
-          ? s.bio
-          : fallback.bullets;
+  function isLecture(s) {
+    return (
+      s.type === 'session' &&
+      !(s.sublabel || '').includes('Opening') &&
+      !(s.title || '').includes('오프닝') &&
+      s.title !== 'Opening' &&
+      s.speaker &&
+      s.speaker !== '-'
+    );
+  }
 
-      const image =
-        s.photo ||
-        s.image ||
-        fallback.image;
+  function renderHero(h) {
+    if (!h) return;
 
-      const imageAlt =
-        fallback.imageAlt ||
-        (name + ' 강사 사진');
+    const eyebrow =
+      document.querySelector('.eyebrow');
 
-      const photoHtml =
-        image
-        ? (
-          '<div class="speaker-photo">' +
-            '<img src="' +
-            esc(image) +
-            '" alt="' +
-            esc(imageAlt) +
-            '" loading="lazy">' +
-          '</div>'
-        )
-        : '';
+    if (
+      eyebrow &&
+      (h.eyebrow || h.scheduleDate)
+    ) {
+      eyebrow.textContent =
+        h.eyebrow ||
+        (
+          'ENGINEERING INSIGHT DAY · ' +
+          h.scheduleDate
+        );
+    }
 
-      return (
+    const year =
+      document.querySelector('.year');
 
-        '<article class="speaker-card reveal visible">' +
+    if (year && h.year) {
+      year.textContent = h.year;
+    }
 
-          photoHtml +
+    const h1 =
+      document.querySelector('.hero h1');
 
-          '<div class="speaker-content">' +
+    if (
+      h1 &&
+      (h.title || h.titleSpan)
+    ) {
+      h1.innerHTML =
+        esc(h.title || 'HVAC Engineering') +
+        '<span>' +
+        esc(h.titleSpan || 'Expert Seminar') +
+        '</span>';
+    }
 
-            '<span class="speaker-label">' +
-              'EXPERT SPEAKER' +
-            '</span>' +
+    const copy =
+      document.querySelector('.hero-copy');
 
-            '<p class="org">' +
-              esc(org) +
-            '</p>' +
+    if (copy && h.copy) {
+      copy.textContent = h.copy;
+    }
 
-            '<h3>' +
-              esc(name) +
-            '</h3>' +
+    const meta =
+      document.querySelectorAll(
+        '.hero .meta > div strong'
+      );
 
-            '<p class="speaker-topic">' +
-              esc(s.title) +
-            '</p>' +
+    const vals = [
+      h.entryTime,
+      h.totalSchedule,
+      h.location,
+      h.venue
+    ];
 
-            (
-              bio.length
-                ? (
-                  '<ul>' +
-                    bio.map(function(b) {
+    meta.forEach(function (el, i) {
+      if (vals[i]) {
+        el.textContent = vals[i];
+      }
+    });
+  }
+
+  function renderAgenda(sessions) {
+    const shell =
+      document.querySelector(
+        '#agenda .agenda-shell'
+      );
+
+    if (!shell || !sessions.length) return;
+
+    shell
+      .querySelectorAll('.agenda-row')
+      .forEach(function (r) {
+        r.remove();
+      });
+
+    sessions.forEach(function (s) {
+      const cls =
+        ['session', 'break', 'meal'].includes(s.type)
+          ? s.type
+          : '';
+
+      const row =
+        document.createElement('div');
+
+      row.className =
+        ('agenda-row ' + cls).trim();
+
+      row.innerHTML =
+        '<div class="time">' +
+        esc(s.time) +
+        '</div>' +
+
+        '<div class="minute">' +
+        esc(s.minute || '-') +
+        '</div>' +
+
+        '<div class="topic">' +
+        esc(s.title) +
+        '</div>' +
+
+        '<div class="speaker">' +
+        esc(cleanSpeaker(s.speaker) || '-') +
+        '</div>' +
+
+        '<div class="note">' +
+        esc(s.note || '') +
+        '</div>';
+
+      shell.appendChild(row);
+    });
+  }
+
+  /* ======================================================
+     강사 카드 동적 생성
+     사진은 위쪽
+     강의 제목/약력은 아래 전체 폭
+  ====================================================== */
+  function renderSpeakers(sessions) {
+
+    const grid =
+      document.querySelector(
+        '#speakers .speaker-grid'
+      );
+
+    const lectures =
+      sessions.filter(isLecture);
+
+    if (!grid || !lectures.length) return;
+
+    captureStaticSpeakers();
+
+    grid.innerHTML =
+      lectures.map(function (s) {
+
+        const name =
+          cleanSpeaker(s.speaker);
+
+        const fallback =
+          staticSpeakers[nameKey(name)] || {
+            org: '',
+            bullets: [],
+            image: '',
+            imageAlt: ''
+          };
+
+        const org =
+          speakerOrg(s) ||
+          fallback.org;
+
+        const bio =
+          Array.isArray(s.bio) &&
+          s.bio.length
+            ? s.bio
+            : fallback.bullets;
+
+        const image =
+          s.photo ||
+          s.image ||
+          fallback.image;
+
+        const imageAlt =
+          fallback.imageAlt ||
+          (name + ' 강사 사진');
+
+        const photoHtml =
+          image
+            ? (
+              '<div class="speaker-photo">' +
+                '<img src="' +
+                esc(image) +
+                '" alt="' +
+                esc(imageAlt) +
+                '" loading="lazy">' +
+              '</div>'
+            )
+            : '';
+
+        return (
+          '<article class="speaker-card reveal visible">' +
+
+            '<div class="speaker-top">' +
+
+              '<div class="speaker-identity">' +
+
+                '<span class="speaker-label">' +
+                  'EXPERT SPEAKER' +
+                '</span>' +
+
+                '<p class="org">' +
+                  esc(org) +
+                '</p>' +
+
+                '<h3>' +
+                  esc(name) +
+                '</h3>' +
+
+              '</div>' +
+
+              photoHtml +
+
+            '</div>' +
+
+            '<div class="speaker-detail">' +
+
+              '<p class="speaker-topic">' +
+                esc(s.title) +
+              '</p>' +
+
+              (
+                bio.length
+                  ? (
+                    '<ul>' +
+                    bio.map(function (b) {
                       return (
                         '<li>' +
                         esc(b) +
                         '</li>'
                       );
                     }).join('') +
-                  '</ul>'
-                )
-                : ''
-            ) +
+                    '</ul>'
+                  )
+                  : ''
+              ) +
 
-          '</div>' +
+            '</div>' +
 
-        '</article>'
-      );
-    }).join('');
-}
-
-function syncAll() {
-
-  try {
-
-    const data =
-      readJson(
-        'hvac_schedule_settings'
-      );
-
-    if (data) {
-
-      migrate(data);
-
-      renderHero(data.hero);
-
-      const sessions =
-        Array.isArray(data.sessions)
-          ? data.sessions
-          : [];
-
-      renderAgenda(sessions);
-
-      renderSpeakers(sessions);
-    }
-
-  } catch(e) {
-
-    console.warn(
-      'index sync error:',
-      e
-    );
+          '</article>'
+        );
+      }).join('');
   }
-}
 
-document.addEventListener(
-  'DOMContentLoaded',
-  function() {
+  function syncAll() {
+    try {
+      const data =
+        readJson(
+          'hvac_schedule_settings'
+        );
 
-    captureStaticSpeakers();
+      if (data) {
+        migrate(data);
 
-    syncAll();
+        renderHero(data.hero);
 
-    if (window.HVAC) {
-      HVAC.onConfigUpdated(syncAll);
+        const sessions =
+          Array.isArray(data.sessions)
+            ? data.sessions
+            : [];
+
+        renderAgenda(sessions);
+        renderSpeakers(sessions);
+      }
+
+    } catch (e) {
+      console.warn(
+        'index sync error:',
+        e
+      );
     }
   }
-);
+
+  document.addEventListener(
+    'DOMContentLoaded',
+    function () {
+      captureStaticSpeakers();
+      syncAll();
+
+      if (window.HVAC) {
+        HVAC.onConfigUpdated(syncAll);
+      }
+    }
+  );
 
 })();
 </script>
 
 <style>
+
+/* =====================================================
+   BASIC
+===================================================== */
 
 :root {
   --primary: #108548;
@@ -572,8 +555,7 @@ document.addEventListener(
   --line: #1c3324;
   --muted: #a3b5a9;
   --radius: 18px;
-  --shadow:
-    0 22px 60px rgba(0,0,0,.45);
+  --shadow: 0 22px 60px rgba(0,0,0,.45);
 }
 
 * {
@@ -589,12 +571,14 @@ body {
   margin: 0;
   background: var(--black);
   color: #fff;
+
   font-family:
     Pretendard,
     "Noto Sans KR",
     "Malgun Gothic",
     Arial,
     sans-serif;
+
   line-height: 1.65;
   word-break: keep-all;
 }
@@ -618,6 +602,7 @@ button {
       1160px,
       calc(100% - 36px)
     );
+
   margin: 0 auto;
 }
 
@@ -629,41 +614,55 @@ header {
   position: sticky;
   top: 0;
   z-index: 1000;
+
   background:
     rgba(5,10,7,.92);
+
   backdrop-filter:
     blur(14px);
+
   border-bottom:
-    1px solid rgba(212,160,23,.2);
+    1px solid
+    rgba(212,160,23,.2);
 }
 
 .nav {
   min-height: 72px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 16px;
 }
 
 .brand {
   display: flex;
   align-items: center;
+
   gap: 12px;
+
   font-size: 14px;
   font-weight: 950;
+
   letter-spacing: .05em;
 }
 
 .brand-mark {
   width: 18px;
   height: 18px;
+
+  flex: 0 0 auto;
+
   border-radius: 50%;
+
   background:
     linear-gradient(
       135deg,
       #f3c448,
       #108548
     );
+
   box-shadow:
     0 0 0 7px
     rgba(34,197,94,.18);
@@ -672,7 +671,9 @@ header {
 .links {
   display: flex;
   align-items: center;
+
   gap: 16px;
+
   font-size: 14px;
   font-weight: 850;
 }
@@ -683,14 +684,18 @@ header {
 
 .cta {
   padding: 9px 15px;
+
   border:
     1px solid #1c3525;
+
   border-radius: 999px;
+
   background: #09150e;
 }
 
 .cta.primary {
   border-color: #22c55e;
+
   background:
     linear-gradient(
       135deg,
@@ -701,20 +706,31 @@ header {
 
 .menu-btn {
   display: none;
+
   min-height: 44px;
-  padding: 9px 12px;
+
+  padding:
+    9px 12px;
+
   background: #111;
+
   color: #fff;
+
   border:
     1px solid #555;
-  border-radius: 10px;
+
+  border-radius:
+    10px;
 }
 
 .mobile-menu {
   display: none;
+
   padding:
     10px 18px 18px;
-  background: #09090a;
+
+  background:
+    #09090a;
 }
 
 .mobile-menu.open {
@@ -723,7 +739,10 @@ header {
 
 .mobile-menu a {
   display: block;
-  padding: 14px 8px;
+
+  padding:
+    14px 8px;
+
   border-bottom:
     1px solid #242428;
 }
@@ -734,9 +753,12 @@ header {
 
 .hero {
   min-height: 700px;
+
   display: grid;
   align-items: center;
+
   position: relative;
+
   overflow: hidden;
 
   background:
@@ -745,11 +767,13 @@ header {
       rgba(214,160,23,.46),
       transparent 42%
     ),
+
     radial-gradient(
       circle at 8% 88%,
       rgba(16,133,72,.62),
       transparent 46%
     ),
+
     linear-gradient(
       135deg,
       #040906,
@@ -765,31 +789,53 @@ header {
 
 .eyebrow {
   display: inline-flex;
+
   padding:
     8px 15px;
+
   border:
     1px solid
     rgba(243,196,72,.35);
-  border-radius: 999px;
-  color: #f3c448;
-  font-size: 12px;
-  font-weight: 950;
+
+  border-radius:
+    999px;
+
+  color:
+    #f3c448;
+
+  font-size:
+    12px;
+
+  font-weight:
+    950;
 }
 
 .year {
-  margin-top: 22px;
-  color: #f3c448;
+  margin-top:
+    22px;
+
+  color:
+    #f3c448;
+
   font-size:
     clamp(25px,3vw,38px);
-  font-weight: 950;
+
+  font-weight:
+    950;
 }
 
 .hero h1 {
-  margin: 4px 0 22px;
+  margin:
+    4px 0 22px;
+
   font-size:
     clamp(45px,7.6vw,88px);
-  line-height: 1.02;
-  letter-spacing: -.06em;
+
+  line-height:
+    1.02;
+
+  letter-spacing:
+    -.06em;
 }
 
 .hero h1 span {
@@ -810,31 +856,46 @@ header {
 }
 
 .hero-copy {
-  max-width: 800px;
+  max-width:
+    800px;
+
+  color:
+    #e7e7e9;
+
   font-size:
     clamp(16px,2vw,20px);
-  color: #e7e7e9;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
+
   gap: 12px;
-  margin-top: 30px;
+
+  margin-top:
+    30px;
 }
 
 .btn {
-  min-height: 48px;
+  min-height:
+    48px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   padding:
     0 22px;
+
   border:
     1px solid
     rgba(255,255,255,.35);
-  border-radius: 12px;
-  font-weight: 900;
+
+  border-radius:
+    12px;
+
+  font-weight:
+    900;
 }
 
 .btn.primary {
@@ -848,26 +909,41 @@ header {
 
 .meta {
   display: grid;
+
   grid-template-columns:
     repeat(4,1fr);
-  margin-top: 44px;
+
+  margin-top:
+    44px;
+
   border:
     1px solid
     rgba(243,196,72,.25);
-  border-radius: 16px;
-  overflow: hidden;
+
+  border-radius:
+    16px;
+
+  overflow:
+    hidden;
 }
 
 .meta div {
-  padding: 17px 19px;
+  padding:
+    17px 19px;
+
   background:
     rgba(5,12,8,.75);
 }
 
 .meta small {
-  display: block;
-  color: #f3c448;
-  font-weight: 850;
+  display:
+    block;
+
+  color:
+    #f3c448;
+
+  font-weight:
+    850;
 }
 
 /* =====================================================
@@ -875,25 +951,42 @@ header {
 ===================================================== */
 
 section {
-  padding: 90px 0;
+  padding:
+    90px 0;
 }
 
 .section-head {
-  margin-bottom: 35px;
+  margin-bottom:
+    35px;
 }
 
 .badge {
-  display: inline-block;
-  color: #f3c448;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: .12em;
+  display:
+    inline-block;
+
+  color:
+    #f3c448;
+
+  font-size:
+    13px;
+
+  font-weight:
+    900;
+
+  letter-spacing:
+    .12em;
 }
 
 .section-head h2 {
-  margin: 0;
+  margin:
+    0;
+
   font-size:
     clamp(32px,4.8vw,52px);
+}
+
+.section-head p {
+  color: var(--muted);
 }
 
 /* =====================================================
@@ -903,13 +996,18 @@ section {
 .agenda-shell {
   border:
     1px solid var(--line);
-  border-radius: 18px;
-  overflow: hidden;
+
+  border-radius:
+    18px;
+
+  overflow:
+    hidden;
 }
 
 .agenda-head,
 .agenda-row {
   display: grid;
+
   grid-template-columns:
     160px 72px 1fr 150px 170px;
 }
@@ -921,25 +1019,33 @@ section {
       #094a27,
       #108548
     );
-  font-weight: 900;
+
+  font-weight:
+    900;
 }
 
 .agenda-head > div,
 .agenda-row > div {
   display: flex;
   align-items: center;
+
   padding:
     14px 15px;
+
   border-right:
     1px solid
     rgba(255,255,255,.13);
 }
 
 .agenda-row {
-  min-height: 68px;
+  min-height:
+    68px;
+
   border-top:
     1px solid var(--line);
-  background: #08120b;
+
+  background:
+    #08120b;
 }
 
 .agenda-row.session {
@@ -952,9 +1058,14 @@ section {
 }
 
 .agenda-row.break {
-  min-height: 50px;
-  color: #8fa094;
-  background: #040906;
+  min-height:
+    50px;
+
+  color:
+    #8fa094;
+
+  background:
+    #040906;
 }
 
 .agenda-row.meal {
@@ -968,16 +1079,19 @@ section {
 
 .time,
 .minute {
-  justify-content: center;
+  justify-content:
+    center;
 }
 
 .topic,
 .speaker {
-  font-weight: 850;
+  font-weight:
+    850;
 }
 
 /* =====================================================
-   SPEAKERS + PHOTO
+   SPEAKER PROFILE
+   핵심 수정 영역
 ===================================================== */
 
 .speakers {
@@ -991,26 +1105,28 @@ section {
 
 .speaker-grid {
   display: grid;
+
   grid-template-columns:
     repeat(
       3,
       minmax(0,1fr)
     );
+
   gap: 20px;
 }
 
-.speaker-card {
-  position: relative;
+/*
+  카드 전체에는 더 이상
+  padding-right:155px를 사용하지 않습니다.
 
-  min-height: 355px;
+  따라서 강의 제목과 약력은
+  카드 전체 폭을 사용할 수 있습니다.
+*/
+.speaker-card {
+  min-width: 0;
 
   padding:
     30px;
-
-  padding-right:
-    155px;
-
-  overflow: hidden;
 
   border-radius:
     var(--radius);
@@ -1028,6 +1144,9 @@ section {
   box-shadow:
     var(--shadow);
 
+  overflow:
+    hidden;
+
   transition:
     transform .22s;
 }
@@ -1038,52 +1157,32 @@ section {
 }
 
 /*
-  사진 오른쪽 상단 배치
+  카드 상단에만
+  강사 정보 + 사진
 */
-.speaker-photo {
-  position: absolute;
+.speaker-top {
+  display: grid;
 
-  right: 22px;
-  top: 22px;
+  grid-template-columns:
+    minmax(0,1fr) 112px;
 
-  width: 112px;
-  height: 130px;
+  gap:
+    18px;
 
-  border-radius: 14px;
+  align-items:
+    start;
 
-  overflow: hidden;
-
-  background:
-    linear-gradient(
-      145deg,
-      #edf1ee,
-      #d7ded9
-    );
-
-  box-shadow:
-    0 8px 24px
-    rgba(0,0,0,.12);
+  margin-bottom:
+    18px;
 }
 
-.speaker-photo img {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  object-fit: cover;
-
-  object-position:
-    center top;
-}
-
-.speaker-content {
-  position: relative;
-  z-index: 2;
+.speaker-identity {
+  min-width: 0;
 }
 
 .speaker-label {
-  display: inline-block;
+  display:
+    inline-block;
 
   margin-bottom:
     17px;
@@ -1112,11 +1211,14 @@ section {
 
   letter-spacing:
     .12em;
+
+  white-space:
+    nowrap;
 }
 
 .speaker-card .org {
   margin:
-    0;
+    0 0 3px;
 
   color:
     #53665a;
@@ -1130,34 +1232,108 @@ section {
 
 .speaker-card h3 {
   margin:
-    2px 0 12px;
+    2px 0 0;
 
   font-size:
     27px;
 
   line-height:
-    1.25;
+    1.22;
+
+  letter-spacing:
+    -.03em;
+}
+
+/*
+  강사 사진
+*/
+.speaker-photo {
+  width:
+    112px;
+
+  height:
+    130px;
+
+  overflow:
+    hidden;
+
+  border-radius:
+    13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e5ebe7,
+      #d6ddd8
+    );
+
+  box-shadow:
+    0 8px 22px
+    rgba(0,0,0,.10);
+}
+
+.speaker-photo img {
+  display:
+    block;
+
+  width:
+    100%;
+
+  height:
+    100%;
+
+  object-fit:
+    cover;
+
+  object-position:
+    center top;
+}
+
+/*
+  핵심:
+  제목 + 약력은 사진 영역의 영향을 받지 않고
+  카드 전체 폭을 사용합니다.
+*/
+.speaker-detail {
+  width:
+    100%;
+
+  min-width:
+    0;
 }
 
 .speaker-topic {
-  margin:
-    0 0 16px;
+  width:
+    100%;
 
-  padding-left:
-    12px;
+  margin:
+    0 0 17px;
+
+  padding:
+    2px 0 2px 12px;
 
   border-left:
     4px solid #d4a017;
+
+  font-size:
+    15px;
 
   font-weight:
     950;
 
   line-height:
-    1.45;
+    1.5;
+
+  overflow-wrap:
+    anywhere;
 }
 
 .speaker-card ul {
-  margin: 0;
+  width:
+    100%;
+
+  margin:
+    0;
 
   padding-left:
     18px;
@@ -1167,6 +1343,14 @@ section {
 
   font-size:
     13px;
+
+  line-height:
+    1.65;
+}
+
+.speaker-card li {
+  padding-left:
+    2px;
 }
 
 .speaker-card li + li {
@@ -1179,40 +1363,64 @@ section {
 ===================================================== */
 
 .kakao-section {
-  background: #0a0a0c;
+  background:
+    #0a0a0c;
 }
 
 .kakao-grid {
   display: grid;
+
   grid-template-columns:
     1.2fr .8fr;
-  gap: 24px;
+
+  gap:
+    24px;
 }
 
 .kakao-card,
 .share-box {
-  padding: 34px;
-  background: #111114;
+  padding:
+    34px;
+
+  background:
+    #111114;
+
   border:
     1px solid #333338;
-  border-radius: 18px;
+
+  border-radius:
+    18px;
 }
 
 .kakao-tag {
-  display: inline-flex;
-  padding: 5px 12px;
-  border-radius: 999px;
+  display:
+    inline-flex;
+
+  padding:
+    5px 12px;
+
+  border-radius:
+    999px;
+
   background:
     var(--kakao-yellow);
+
   color:
     var(--kakao-brown);
-  font-size: 12px;
-  font-weight: 900;
+
+  font-size:
+    12px;
+
+  font-weight:
+    900;
 }
 
 .kakao-features {
-  list-style: none;
-  padding: 0;
+  list-style:
+    none;
+
+  padding:
+    0;
 }
 
 .kakao-features li {
@@ -1221,30 +1429,51 @@ section {
 }
 
 .btn-kakao-enter {
-  display: inline-flex;
+  display:
+    inline-flex;
+
   padding:
     14px 28px;
-  border-radius: 12px;
+
+  border-radius:
+    12px;
+
   background:
     var(--kakao-yellow);
+
   color:
     var(--kakao-brown);
-  font-weight: 900;
+
+  font-weight:
+    900;
 }
 
 .share-btn-wrap {
-  display: grid;
-  gap: 10px;
+  display:
+    grid;
+
+  gap:
+    10px;
 }
 
 .btn-copy-link {
-  padding: 13px;
-  background: #202025;
+  padding:
+    13px;
+
+  background:
+    #202025;
+
   border:
     1px solid #44444c;
-  border-radius: 10px;
-  color: white;
-  font-weight: 800;
+
+  border-radius:
+    10px;
+
+  color:
+    #fff;
+
+  font-weight:
+    800;
 }
 
 /* =====================================================
@@ -1252,22 +1481,32 @@ section {
 ===================================================== */
 
 .quiz-compact-section {
-  background: #070709;
+  background:
+    #070709;
+
   padding:
     60px 0;
 }
 
 .quiz-banner-card {
-  display: flex;
+  display:
+    flex;
+
   justify-content:
     space-between;
+
   align-items:
     center;
-  gap: 24px;
+
+  gap:
+    24px;
+
   padding:
     36px 32px;
+
   border-radius:
     18px;
+
   background:
     linear-gradient(
       135deg,
@@ -1281,21 +1520,31 @@ section {
 ===================================================== */
 
 .venue-grid {
-  display: grid;
+  display:
+    grid;
+
   grid-template-columns:
     1fr 1fr;
-  gap: 22px;
+
+  gap:
+    22px;
 }
 
 .venue-card,
 .route-card,
 .info-box,
 .venue-map-card {
-  padding: 30px;
+  padding:
+    30px;
+
   border:
     1px solid var(--line);
-  border-radius: 18px;
-  background: #08130c;
+
+  border-radius:
+    18px;
+
+  background:
+    #08130c;
 }
 
 .venue-map-card {
@@ -1304,97 +1553,180 @@ section {
 }
 
 .venue-map-image-button {
-  display: block;
-  width: 100%;
-  padding: 0;
-  overflow: hidden;
-  background: white;
-  border: 0;
-  border-radius: 15px;
+  display:
+    block;
+
+  width:
+    100%;
+
+  padding:
+    0;
+
+  overflow:
+    hidden;
+
+  background:
+    #fff;
+
+  border:
+    0;
+
+  border-radius:
+    15px;
+
   cursor:
     zoom-in;
 }
 
 .venue-map-image {
-  display: block;
-  width: 100%;
-  height: auto;
+  display:
+    block;
+
+  width:
+    100%;
+
+  height:
+    auto;
 }
 
 .map-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 3000;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
+  position:
+    fixed;
+
+  inset:
+    0;
+
+  z-index:
+    3000;
+
+  display:
+    none;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  padding:
+    24px;
+
   background:
     rgba(0,0,0,.9);
 }
 
 .map-modal.open {
-  display: flex;
+  display:
+    flex;
 }
 
 .map-modal-dialog {
   max-width:
     1180px;
+
   max-height:
     90vh;
-  overflow: auto;
-  padding: 12px;
-  background: white;
-  border-radius: 16px;
+
+  overflow:
+    auto;
+
+  padding:
+    12px;
+
+  background:
+    #fff;
+
+  border-radius:
+    16px;
 }
 
 .map-modal-dialog img {
-  display: block;
-  width: 100%;
+  display:
+    block;
+
+  width:
+    100%;
 }
 
 .map-modal-close {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #222;
-  color: white;
-  border: 0;
-  font-size: 26px;
+  position:
+    fixed;
+
+  top:
+    20px;
+
+  right:
+    20px;
+
+  width:
+    48px;
+
+  height:
+    48px;
+
+  border:
+    0;
+
+  border-radius:
+    50%;
+
+  background:
+    #222;
+
+  color:
+    #fff;
+
+  font-size:
+    26px;
+
+  cursor:
+    pointer;
 }
 
 /* =====================================================
-   NOTICE + FOOTER
+   NOTICE
 ===================================================== */
 
 .info-layout {
-  display: grid;
+  display:
+    grid;
+
   grid-template-columns:
     1.1fr .9fr;
-  gap: 22px;
+
+  gap:
+    22px;
 }
 
 .quick-links {
-  display: grid;
-  gap: 12px;
+  display:
+    grid;
+
+  gap:
+    12px;
 }
 
 .quick-link {
-  display: flex;
+  display:
+    flex;
+
   justify-content:
     space-between;
+
   padding:
     17px 18px;
+
   background:
     #0a170f;
+
   border:
     1px solid #1c3525;
+
   border-radius:
     12px;
-  font-weight: 900;
+
+  font-weight:
+    900;
 }
 
 .quick-link.kakao {
@@ -1402,46 +1734,87 @@ section {
     var(--kakao-yellow);
 }
 
+/* =====================================================
+   FOOTER
+===================================================== */
+
 footer {
   padding:
     34px 0;
+
   border-top:
     1px solid #182d20;
+
   color:
     #8fa094;
 }
 
 .footer-inner {
-  display: flex;
+  display:
+    flex;
+
   justify-content:
     space-between;
-  flex-wrap: wrap;
-  gap: 18px;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    18px;
 }
 
 .floating {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 900;
-  display: flex;
-  gap: 8px;
+  position:
+    fixed;
+
+  right:
+    20px;
+
+  bottom:
+    20px;
+
+  z-index:
+    900;
+
+  display:
+    flex;
+
+  gap:
+    8px;
 }
 
 .top-btn {
-  width: 52px;
-  height: 52px;
-  border: 0;
-  border-radius: 50%;
-  background: #26262b;
-  color: white;
-  opacity: 0;
-  pointer-events: none;
+  width:
+    52px;
+
+  height:
+    52px;
+
+  border:
+    0;
+
+  border-radius:
+    50%;
+
+  background:
+    #26262b;
+
+  color:
+    #fff;
+
+  opacity:
+    0;
+
+  pointer-events:
+    none;
 }
 
 .top-btn.show {
-  opacity: 1;
-  pointer-events: auto;
+  opacity:
+    1;
+
+  pointer-events:
+    auto;
 }
 
 /* =====================================================
@@ -1454,36 +1827,57 @@ footer {
     grid-template-columns:
       repeat(2,1fr);
   }
-
 }
 
 @media(max-width:820px) {
 
   .links {
-    display: none;
+    display:
+      none;
   }
 
   .menu-btn {
-    display: block;
+    display:
+      block;
   }
 
   .agenda-head {
-    display: none;
+    display:
+      none;
+  }
+
+  .agenda-shell {
+    border:
+      0;
+
+    overflow:
+      visible;
   }
 
   .agenda-row {
     grid-template-columns:
       1fr;
-    padding: 18px;
-    margin-bottom: 10px;
+
+    padding:
+      18px;
+
+    margin-bottom:
+      10px;
+
     border:
       1px solid var(--line);
-    border-radius: 13px;
+
+    border-radius:
+      13px;
   }
 
   .agenda-row > div {
-    padding: 1px 0;
-    border: 0;
+    padding:
+      1px 0;
+
+    border:
+      0;
+
     justify-content:
       flex-start;
   }
@@ -1511,6 +1905,7 @@ footer {
   }
 }
 
+/* 모바일 */
 @media(max-width:560px) {
 
   .wrap {
@@ -1518,47 +1913,14 @@ footer {
       calc(100% - 26px);
   }
 
-  .hero h1 {
-    font-size: 40px;
-  }
-
-  /*
-     모바일 강사 카드
-     사진을 오른쪽 위에 유지
-  */
-  .speaker-card {
-    min-height:
-      0;
-
+  section {
     padding:
-      22px;
-
-    padding-right:
-      125px;
+      68px 0;
   }
 
-  .speaker-photo {
-    right:
-      16px;
-
-    top:
-      18px;
-
-    width:
-      92px;
-
-    height:
-      108px;
-  }
-
-  .speaker-card h3 {
+  .hero h1 {
     font-size:
-      23px;
-  }
-
-  .speaker-card ul {
-    font-size:
-      12.5px;
+      40px;
   }
 
   .meta {
@@ -1566,56 +1928,129 @@ footer {
       1fr;
   }
 
-  section {
+  .speaker-card {
     padding:
-      68px 0;
+      22px;
+  }
+
+  /*
+    모바일에서도 상단 정보 + 사진은
+    2열 유지
+  */
+  .speaker-top {
+    grid-template-columns:
+      minmax(0,1fr) 96px;
+
+    gap:
+      14px;
+
+    margin-bottom:
+      17px;
+  }
+
+  .speaker-photo {
+    width:
+      96px;
+
+    height:
+      112px;
+  }
+
+  .speaker-card h3 {
+    font-size:
+      24px;
+  }
+
+  /*
+    강의 제목과 약력은
+    모바일에서도 전체 폭 사용
+  */
+  .speaker-detail {
+    width:
+      100%;
+  }
+
+  .speaker-topic {
+    width:
+      100%;
+
+    font-size:
+      14px;
+
+    padding-left:
+      10px;
+  }
+
+  .speaker-card ul {
+    width:
+      100%;
+
+    font-size:
+      12.5px;
+
+    line-height:
+      1.65;
   }
 }
 
+/*
+  매우 작은 스마트폰
+*/
 @media(max-width:390px) {
 
-  /*
-     아주 작은 스마트폰은
-     사진을 위쪽 독립 영역으로 변경
-  */
   .speaker-card {
     padding:
       20px;
   }
 
+  .speaker-top {
+    grid-template-columns:
+      minmax(0,1fr) 88px;
+
+    gap:
+      12px;
+  }
+
   .speaker-photo {
-    position:
-      relative;
-
-    top:
-      auto;
-
-    right:
-      auto;
-
     width:
-      100%;
+      88px;
 
     height:
-      210px;
+      104px;
+  }
 
-    margin-bottom:
-      18px;
+  .speaker-label {
+    font-size:
+      9px;
+
+    padding:
+      4px 8px;
+  }
+
+  .speaker-card h3 {
+    font-size:
+      22px;
   }
 }
 
 /* Reveal */
 .reveal {
-  opacity: 0;
+  opacity:
+    0;
+
   transform:
     translateY(22px);
+
   transition:
     .6s;
 }
 
 .reveal.visible {
-  opacity: 1;
-  transform: none;
+  opacity:
+    1;
+
+  transform:
+    none;
 }
 
 </style>
@@ -1634,7 +2069,9 @@ footer {
 
 <nav class="links">
 
-<a href="#agenda">일정표</a>
+<a href="#agenda">
+일정표
+</a>
 
 <a href="#speakers">
 강사 프로필
@@ -1663,6 +2100,7 @@ footer {
 <a
 class="cta"
 target="_blank"
+rel="noopener noreferrer"
 href="https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=NeoPortalPage&amp;subpage=design&amp;id=5M1pUCpkwEWAlNDC3sEL42ywEzOY3PNJr4qBXM_4T5dUQzREOFNIOTlaSDhDSUJTRzdZTUJXMUE5My4u">
 📱 모바일 체크인
 </a>
@@ -1670,6 +2108,7 @@ href="https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=NeoPortalPage
 <a
 class="cta primary"
 target="_blank"
+rel="noopener noreferrer"
 href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=5M1pUCpkwEWAlNDC3sEL42ywEzOY3PNJr4qBXM_4T5dURDlOS1VaUFpXTVRPUTkzSFZXUDlBQlk1Vy4u">
 만족도 설문 ↗
 </a>
@@ -1718,20 +2157,18 @@ id="mobileMenu">
 
 <a
 target="_blank"
+rel="noopener noreferrer"
 href="https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=NeoPortalPage&amp;subpage=design&amp;id=5M1pUCpkwEWAlNDC3sEL42ywEzOY3PNJr4qBXM_4T5dUQzREOFNIOTlaSDhDSUJTRzdZTUJXMUE5My4u">
 📱 모바일 체크인
 </a>
 
 </nav>
-
 </header>
 
 <main>
 
 <!-- HERO -->
-<section
-class="hero"
-id="home">
+<section class="hero" id="home">
 
 <div class="wrap hero-inner">
 
@@ -1768,19 +2205,16 @@ href="#agenda">
 <a
 class="btn"
 target="_blank"
+rel="noopener noreferrer"
 href="https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=NeoPortalPage&amp;subpage=design&amp;id=5M1pUCpkwEWAlNDC3sEL42ywEzOY3PNJr4qBXM_4T5dUQzREOFNIOTlaSDhDSUJTRzdZTUJXMUE5My4u">
 📱 모바일 체크인
 </a>
 
-<a
-class="btn"
-href="./quiz.html">
+<a class="btn" href="./quiz.html">
 ✨ 세션 퀴즈 도전
 </a>
 
-<a
-class="btn"
-href="./qna.html">
+<a class="btn" href="./qna.html">
 💬 실시간 Q&amp;A
 </a>
 
@@ -1809,7 +2243,6 @@ href="./qna.html">
 </div>
 
 </div>
-
 </div>
 </section>
 
@@ -1819,7 +2252,6 @@ href="./qna.html">
 <div class="wrap">
 
 <div class="section-head">
-
 <span class="badge">
 PROGRAM TIME TABLE
 </span>
@@ -1831,7 +2263,6 @@ PROGRAM TIME TABLE
 <p>
 전문 강연과 휴식, 기념촬영 및 점심 일정입니다.
 </p>
-
 </div>
 
 <div class="agenda-shell">
@@ -1907,13 +2338,9 @@ PROGRAM TIME TABLE
 <div class="agenda-row meal">
 <div class="time">12:30 ~ 14:00</div>
 <div class="minute">90</div>
-<div class="topic">
-기념촬영 및 점심 식사
-</div>
+<div class="topic">기념촬영 및 점심 식사</div>
 <div class="speaker">-</div>
-<div class="note">
-교내 식당
-</div>
+<div class="note">교내 식당</div>
 </div>
 
 <div class="agenda-row session">
@@ -1922,12 +2349,8 @@ PROGRAM TIME TABLE
 <div class="topic">
 헬로우 히트펌프, 굿바이 보일러
 </div>
-<div class="speaker">
-유정현 수석
-</div>
-<div class="note">
-LHRI (토지주택연구원)
-</div>
+<div class="speaker">유정현 수석</div>
+<div class="note">LHRI (토지주택연구원)</div>
 </div>
 
 <div class="agenda-row break">
@@ -1941,15 +2364,9 @@ LHRI (토지주택연구원)
 <div class="agenda-row session">
 <div class="time">15:10 ~ 15:40</div>
 <div class="minute">30</div>
-<div class="topic">
-에너지컨설팅 사례 발표
-</div>
-<div class="speaker">
-오영훈 팀장
-</div>
-<div class="note">
-에너지컨설팅팀
-</div>
+<div class="topic">에너지컨설팅 사례 발표</div>
+<div class="speaker">오영훈 팀장</div>
+<div class="note">에너지컨설팅팀</div>
 </div>
 
 <div class="agenda-row break">
@@ -1966,24 +2383,16 @@ LHRI (토지주택연구원)
 <div class="topic">
 테라포밍 또는 찬란한 멸종-그래도 우리는 지구에 살아야 한다
 </div>
-<div class="speaker">
-이정모 관장
-</div>
-<div class="note">
-과학커뮤니케이터
-</div>
+<div class="speaker">이정모 관장</div>
+<div class="note">과학커뮤니케이터</div>
 </div>
 
 <div class="agenda-row break">
 <div class="time">17:40 ~ 18:00</div>
 <div class="minute">20</div>
-<div class="topic">
-Wrap up
-</div>
+<div class="topic">Wrap up</div>
 <div class="speaker">-</div>
-<div class="note">
-설문 및 마무리
-</div>
+<div class="note">설문 및 마무리</div>
 </div>
 
 </div>
@@ -1998,12 +2407,15 @@ id="speakers">
 <div class="wrap">
 
 <div class="section-head">
+
 <span class="badge">
 KEYNOTE SPEAKERS
 </span>
+
 <h2>
 강사 프로필
 </h2>
+
 </div>
 
 <div class="speaker-grid">
@@ -2011,14 +2423,9 @@ KEYNOTE SPEAKERS
 <!-- 여명석 -->
 <article class="speaker-card reveal">
 
-<div class="speaker-photo">
-<img
-src="./assets/yeo-myungseok.jpg"
-alt="여명석 교수 강사 사진"
-loading="lazy">
-</div>
+<div class="speaker-top">
 
-<div class="speaker-content">
+<div class="speaker-identity">
 
 <span class="speaker-label">
 EXPERT SPEAKER
@@ -2031,6 +2438,21 @@ EXPERT SPEAKER
 <h3>
 여명석 교수
 </h3>
+
+</div>
+
+<div class="speaker-photo">
+
+<img
+src="./assets/yeo-myungseok.jpg"
+alt="여명석 교수 강사 사진"
+loading="lazy">
+
+</div>
+
+</div>
+
+<div class="speaker-detail">
 
 <p class="speaker-topic">
 국내주거난방의 변천과 현황
@@ -2050,14 +2472,9 @@ EXPERT SPEAKER
 <!-- 이성혁 -->
 <article class="speaker-card reveal">
 
-<div class="speaker-photo">
-<img
-src="./assets/lee-sunghyuk.jpg"
-alt="이성혁 교수 강사 사진"
-loading="lazy">
-</div>
+<div class="speaker-top">
 
-<div class="speaker-content">
+<div class="speaker-identity">
 
 <span class="speaker-label">
 EXPERT SPEAKER
@@ -2070,6 +2487,20 @@ EXPERT SPEAKER
 <h3>
 이성혁 교수
 </h3>
+
+</div>
+
+<div class="speaker-photo">
+
+<img
+src="./assets/lee-sunghyuk.jpg"
+alt="이성혁 교수 강사 사진"
+loading="lazy">
+
+</div>
+</div>
+
+<div class="speaker-detail">
 
 <p class="speaker-topic">
 고밀도 AI 서버의 액체냉각 및 데이터센터 열관리 기술
@@ -2088,14 +2519,9 @@ EXPERT SPEAKER
 <!-- 조홍종 -->
 <article class="speaker-card reveal">
 
-<div class="speaker-photo">
-<img
-src="./assets/cho-hongjong.jpg"
-alt="조홍종 교수 강사 사진"
-loading="lazy">
-</div>
+<div class="speaker-top">
 
-<div class="speaker-content">
+<div class="speaker-identity">
 
 <span class="speaker-label">
 EXPERT SPEAKER
@@ -2108,6 +2534,20 @@ EXPERT SPEAKER
 <h3>
 조홍종 교수
 </h3>
+
+</div>
+
+<div class="speaker-photo">
+
+<img
+src="./assets/cho-hongjong.jpg"
+alt="조홍종 교수 강사 사진"
+loading="lazy">
+
+</div>
+</div>
+
+<div class="speaker-detail">
 
 <p class="speaker-topic">
 국내 전력시장 현황 및 AIDC 전력공급 방안
@@ -2127,14 +2567,9 @@ EXPERT SPEAKER
 <!-- 유정현 -->
 <article class="speaker-card reveal">
 
-<div class="speaker-photo">
-<img
-src="./assets/yoo-junghyun.jpg"
-alt="유정현 수석연구원 강사 사진"
-loading="lazy">
-</div>
+<div class="speaker-top">
 
-<div class="speaker-content">
+<div class="speaker-identity">
 
 <span class="speaker-label">
 EXPERT SPEAKER
@@ -2147,6 +2582,20 @@ EXPERT SPEAKER
 <h3>
 유정현 수석연구원
 </h3>
+
+</div>
+
+<div class="speaker-photo">
+
+<img
+src="./assets/yoo-junghyun.jpg"
+alt="유정현 수석연구원 강사 사진"
+loading="lazy">
+
+</div>
+</div>
+
+<div class="speaker-detail">
 
 <p class="speaker-topic">
 헬로우 히트펌프, 굿바이 보일러
@@ -2165,14 +2614,9 @@ EXPERT SPEAKER
 <!-- 오영훈 -->
 <article class="speaker-card reveal">
 
-<div class="speaker-photo">
-<img
-src="./assets/oh-younghoon.jpg"
-alt="오영훈 팀장 강사 사진"
-loading="lazy">
-</div>
+<div class="speaker-top">
 
-<div class="speaker-content">
+<div class="speaker-identity">
 
 <span class="speaker-label">
 EXPERT SPEAKER
@@ -2185,6 +2629,20 @@ EXPERT SPEAKER
 <h3>
 오영훈 팀장
 </h3>
+
+</div>
+
+<div class="speaker-photo">
+
+<img
+src="./assets/oh-younghoon.jpg"
+alt="오영훈 팀장 강사 사진"
+loading="lazy">
+
+</div>
+</div>
+
+<div class="speaker-detail">
 
 <p class="speaker-topic">
 에너지컨설팅 사례 발표
@@ -2201,14 +2659,9 @@ EXPERT SPEAKER
 <!-- 이정모 -->
 <article class="speaker-card reveal">
 
-<div class="speaker-photo">
-<img
-src="./assets/lee-jungmo.jpg"
-alt="이정모 관장 강사 사진"
-loading="lazy">
-</div>
+<div class="speaker-top">
 
-<div class="speaker-content">
+<div class="speaker-identity">
 
 <span class="speaker-label">
 EXPERT SPEAKER
@@ -2221,6 +2674,20 @@ EXPERT SPEAKER
 <h3>
 이정모 관장
 </h3>
+
+</div>
+
+<div class="speaker-photo">
+
+<img
+src="./assets/lee-jungmo.jpg"
+alt="이정모 관장 강사 사진"
+loading="lazy">
+
+</div>
+</div>
+
+<div class="speaker-detail">
 
 <p class="speaker-topic">
 테라포밍 또는 찬란한 멸종-그래도 우리는 지구에 살아야 한다
@@ -2317,28 +2784,27 @@ href="https://open.kakao.com/o/gfwiqxVi">
 </h3>
 
 <p>
-함께 참석하는 동료나 팀원에게
-세미나 일정표와 체크인 링크를 전달하세요.
+함께 참석하는 동료나 팀원에게 세미나 일정표와 체크인 링크를 전달하세요.
 </p>
 
 <div class="share-btn-wrap">
 
 <button
 class="btn-copy-link"
-id="copyUrlBtn">
+id="copyUrlBtn"
+type="button">
 🔗 세미나 웹사이트 링크 복사
 </button>
 
 <button
 class="btn-copy-link"
-id="shareKakaoBtn">
+id="shareKakaoBtn"
+type="button">
 💬 카카오톡/모바일로 공유
 </button>
 
 </div>
-
 </div>
-
 </div>
 </div>
 </section>
@@ -2351,7 +2817,6 @@ id="shareKakaoBtn">
 <div class="quiz-banner-card">
 
 <div>
-
 <span class="badge">
 EVENT &amp; LUCKY DRAW
 </span>
@@ -2361,28 +2826,21 @@ EVENT &amp; LUCKY DRAW
 </h2>
 
 <p>
-각 세션의 핵심 인사이트를 퀴즈로 풀고
-특별 경품 럭키드로우 추첨 기회를 잡으세요.
+각 세션의 핵심 인사이트를 퀴즈로 풀고 특별 경품 럭키드로우 추첨 기회를 잡으세요.
 </p>
-
 </div>
 
 <div class="actions">
 
-<a
-class="btn primary"
-href="./quiz.html">
+<a class="btn primary" href="./quiz.html">
 💡 세션 퀴즈 풀러 가기 →
 </a>
 
-<a
-class="btn"
-href="./qna.html">
+<a class="btn" href="./qna.html">
 ✍️ 실시간 세션 Q&amp;A →
 </a>
 
 </div>
-
 </div>
 </div>
 </section>
@@ -2421,15 +2879,9 @@ LOCATION &amp; ROUTE
 </h2>
 
 <ul>
-<li>
-4호선 길음역 3번 출구 → 국민대학교 정문행 버스
-</li>
-<li>
-4호선 성신여대입구역 → 국민대학교행 버스
-</li>
-<li>
-우이신설선 정릉역 → 국민대학교 정문
-</li>
+<li>4호선 길음역 3번 출구 → 국민대학교 정문행 버스</li>
+<li>4호선 성신여대입구역 → 국민대학교행 버스</li>
+<li>우이신설선 정릉역 → 국민대학교 정문</li>
 </ul>
 
 </article>
@@ -2441,18 +2893,10 @@ LOCATION &amp; ROUTE
 </h3>
 
 <ul>
-<li>
-국민대학교 정문 → 본부관 별관 1층 학술회의장
-</li>
-<li>
-단체사진 촬영: 국제관 계단
-</li>
-<li>
-중식 장소: 법학관 5층 청향
-</li>
-<li>
-자가용 이용 시 교내 지하주차장 이용
-</li>
+<li>국민대학교 정문 → 본부관 별관 1층 학술회의장</li>
+<li>단체사진 촬영: 국제관 계단</li>
+<li>중식 장소: 법학관 5층 청향</li>
+<li>자가용 이용 시 교내 지하주차장 이용</li>
 </ul>
 
 </article>
@@ -2484,7 +2928,6 @@ alt="국민대학교 행사장 안내 약도">
 </p>
 
 </article>
-
 </div>
 </div>
 </section>
@@ -2495,7 +2938,6 @@ alt="국민대학교 행사장 안내 약도">
 <div class="wrap">
 
 <div class="section-head">
-
 <span class="badge">
 INFORMATION
 </span>
@@ -2503,7 +2945,6 @@ INFORMATION
 <h2>
 참석 안내
 </h2>
-
 </div>
 
 <div class="info-layout">
@@ -2518,15 +2959,19 @@ INFORMATION
 <li>
 일시: 2026년 11월 16일 (월) 09:00 ~ 18:00
 </li>
+
 <li>
 오전 8시 50분까지 입실해 주세요.
 </li>
+
 <li>
 Opening은 오전 9시에 시작합니다.
 </li>
+
 <li>
 기념촬영 및 점심은 12:30부터 14:00까지 진행됩니다.
 </li>
+
 <li>
 행사 장소는 국민대학교 본부관 (별관) 1층 학술회의장입니다.
 </li>
@@ -2539,6 +2984,7 @@ Opening은 오전 9시에 시작합니다.
 <a
 class="quick-link kakao"
 target="_blank"
+rel="noopener noreferrer"
 href="https://open.kakao.com/o/gfwiqxVi">
 
 <span>
@@ -2546,12 +2992,12 @@ href="https://open.kakao.com/o/gfwiqxVi">
 </span>
 
 <span>↗</span>
-
 </a>
 
 <a
 class="quick-link"
 target="_blank"
+rel="noopener noreferrer"
 href="https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=NeoPortalPage&amp;subpage=design&amp;id=5M1pUCpkwEWAlNDC3sEL42ywEzOY3PNJr4qBXM_4T5dUQzREOFNIOTlaSDhDSUJTRzdZTUJXMUE5My4u">
 
 <span>
@@ -2559,12 +3005,12 @@ href="https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=NeoPortalPage
 </span>
 
 <span>↗</span>
-
 </a>
 
 <a
 class="quick-link"
 target="_blank"
+rel="noopener noreferrer"
 href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=5M1pUCpkwEWAlNDC3sEL42ywEzOY3PNJr4qBXM_4T5dURDlOS1VaUFpXTVRPUTkzSFZXUDlBQlk1Vy4u">
 
 <span>
@@ -2572,7 +3018,6 @@ href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=5M1pUCpkwEWAlNDC3
 </span>
 
 <span>↗</span>
-
 </a>
 
 </div>
@@ -2597,20 +3042,21 @@ href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=5M1pUCpkwEWAlNDC3
 </span>
 
 </div>
-
 </footer>
 
-<!-- FLOAT -->
+<!-- FLOAT BUTTON -->
 <div class="floating">
 
 <button
 class="top-btn"
-id="topBtn">
+id="topBtn"
+type="button">
 ↑
 </button>
 
 <a
 target="_blank"
+rel="noopener noreferrer"
 href="https://forms.cloud.microsoft/Pages/DesignPageV2.aspx?origin=NeoPortalPage&amp;subpage=design&amp;id=5M1pUCpkwEWAlNDC3sEL42ywEzOY3PNJr4qBXM_4T5dUQzREOFNIOTlaSDhDSUJTRzdZTUJXMUE5My4u"
 style="
 background:#108548;
@@ -2629,7 +3075,8 @@ id="mapModal">
 
 <button
 class="map-modal-close"
-id="closeMapModal">
+id="closeMapModal"
+type="button">
 ×
 </button>
 
@@ -2640,7 +3087,6 @@ src="./assets/kookmin-venue-map.png"
 alt="국민대학교 행사장 안내 약도 확대">
 
 </div>
-
 </div>
 
 <script>
@@ -2653,99 +3099,111 @@ document.querySelector('.menu-btn');
 const mobileMenu =
 document.getElementById('mobileMenu');
 
-if (
-  menuBtn &&
-  mobileMenu
-) {
+if (menuBtn && mobileMenu) {
 
-menuBtn.addEventListener(
-'click',
-function() {
+  menuBtn.addEventListener(
+    'click',
+    function () {
 
-mobileMenu
-.classList
-.toggle('open');
+      const isOpen =
+        mobileMenu.classList.toggle('open');
 
-});
-
+      menuBtn.setAttribute(
+        'aria-expanded',
+        String(isOpen)
+      );
+    }
+  );
 }
 
 /* SMOOTH SCROLL */
 
 document
-.querySelectorAll(
-'a[href^="#"]'
-)
-.forEach(function(link) {
+.querySelectorAll('a[href^="#"]')
+.forEach(function (link) {
 
-link.addEventListener(
-'click',
-function(e) {
+  link.addEventListener(
+    'click',
+    function (e) {
 
-const target =
-document.querySelector(
-link.getAttribute('href')
-);
+      const selector =
+        link.getAttribute('href');
 
-if (!target) return;
+      if (
+        !selector ||
+        selector === '#'
+      ) {
+        return;
+      }
 
-e.preventDefault();
+      const target =
+        document.querySelector(
+          selector
+        );
 
-target.scrollIntoView({
-behavior:'smooth'
-});
+      if (!target) return;
 
-mobileMenu
-?.classList
-.remove('open');
+      e.preventDefault();
 
-});
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
 
+      mobileMenu
+        ?.classList
+        .remove('open');
+    }
+  );
 });
 
 /* REVEAL */
 
 if (
-'IntersectionObserver'
-in window
+  'IntersectionObserver'
+  in window
 ) {
 
-const observer =
-new IntersectionObserver(
-function(entries) {
+  const observer =
+    new IntersectionObserver(
+      function (entries) {
 
-entries.forEach(
-function(entry) {
+        entries.forEach(
+          function (entry) {
 
-if (
-entry.isIntersecting
-) {
+            if (
+              entry.isIntersecting
+            ) {
 
-entry.target
-.classList
-.add('visible');
+              entry.target
+                .classList
+                .add('visible');
 
-observer
-.unobserve(
-entry.target
-);
+              observer.unobserve(
+                entry.target
+              );
+            }
+          }
+        );
+      },
+      {
+        threshold: .1
+      }
+    );
 
-}
+  document
+    .querySelectorAll('.reveal')
+    .forEach(function (el) {
+      observer.observe(el);
+    });
 
-});
+} else {
 
-},
-{
-threshold:.1
-}
-);
-
-document
-.querySelectorAll('.reveal')
-.forEach(function(el) {
-observer.observe(el);
-});
-
+  document
+    .querySelectorAll('.reveal')
+    .forEach(function (el) {
+      el.classList.add('visible');
+    });
 }
 
 /* TOP */
@@ -2754,181 +3212,165 @@ const topBtn =
 document.getElementById('topBtn');
 
 window.addEventListener(
-'scroll',
-function() {
+  'scroll',
+  function () {
 
-topBtn
-?.classList
-.toggle(
-'show',
-window.scrollY > 600
+    topBtn
+      ?.classList
+      .toggle(
+        'show',
+        window.scrollY > 600
+      );
+  }
 );
-
-});
 
 topBtn
 ?.addEventListener(
-'click',
-function() {
+  'click',
+  function () {
 
-window.scrollTo({
-top:0,
-behavior:'smooth'
-});
-
-});
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+);
 
 /* SHARE */
 
 const copyBtn =
 document.getElementById(
-'copyUrlBtn'
+  'copyUrlBtn'
 );
 
 copyBtn
 ?.addEventListener(
-'click',
-function() {
+  'click',
+  function () {
 
-navigator.clipboard
-.writeText(
-window.location.href
+    navigator.clipboard
+      .writeText(
+        window.location.href
+      )
+      .then(function () {
+        alert(
+          '세미나 링크가 복사되었습니다.'
+        );
+      });
+  }
 );
-
-alert(
-'세미나 링크가 복사되었습니다.'
-);
-
-});
 
 const shareBtn =
 document.getElementById(
-'shareKakaoBtn'
+  'shareKakaoBtn'
 );
 
 shareBtn
 ?.addEventListener(
-'click',
-function() {
+  'click',
+  function () {
 
-if (
-navigator.share
-) {
+    if (navigator.share) {
 
-navigator.share({
+      navigator.share({
+        title:
+          '2026 HVAC Engineering Expert Seminar',
 
-title:
-'2026 HVAC Engineering Expert Seminar',
+        text:
+          '2026 HVAC 전문가 세미나 안내입니다.',
 
-url:
-window.location.href
+        url:
+          window.location.href
+      });
 
-});
+    } else {
 
-}
-else {
-
-navigator.clipboard
-.writeText(
-window.location.href
+      navigator.clipboard
+        .writeText(
+          window.location.href
+        )
+        .then(function () {
+          alert(
+            '링크가 복사되었습니다.'
+          );
+        });
+    }
+  }
 );
-
-alert(
-'링크가 복사되었습니다.'
-);
-
-}
-
-});
 
 /* MAP MODAL */
 
 const mapModal =
 document.getElementById(
-'mapModal'
+  'mapModal'
 );
 
 const openMap =
 document.getElementById(
-'openMapModal'
+  'openMapModal'
 );
 
 const closeMap =
 document.getElementById(
-'closeMapModal'
+  'closeMapModal'
 );
+
+function closeVenueMap() {
+
+  mapModal
+    ?.classList
+    .remove('open');
+
+  document.body
+    .classList
+    .remove('modal-open');
+}
 
 openMap
 ?.addEventListener(
-'click',
-function() {
+  'click',
+  function () {
 
-mapModal
-.classList
-.add('open');
+    mapModal
+      ?.classList
+      .add('open');
 
-document.body
-.classList
-.add('modal-open');
-
-});
+    document.body
+      .classList
+      .add('modal-open');
+  }
+);
 
 closeMap
 ?.addEventListener(
-'click',
-function() {
-
-mapModal
-.classList
-.remove('open');
-
-document.body
-.classList
-.remove('modal-open');
-
-});
+  'click',
+  closeVenueMap
+);
 
 mapModal
 ?.addEventListener(
-'click',
-function(e) {
+  'click',
+  function (e) {
 
-if (
-e.target === mapModal
-) {
+    if (
+      e.target === mapModal
+    ) {
+      closeVenueMap();
+    }
+  }
+);
 
-mapModal
-.classList
-.remove('open');
+document.addEventListener(
+  'keydown',
+  function (e) {
 
-document.body
-.classList
-.remove('modal-open');
-
-}
-
-});
-
-document
-.addEventListener(
-'keydown',
-function(e) {
-
-if (
-e.key === 'Escape'
-) {
-
-mapModal
-?.classList
-.remove('open');
-
-document.body
-.classList
-.remove('modal-open');
-
-}
-
-});
+    if (
+      e.key === 'Escape'
+    ) {
+      closeVenueMap();
+    }
+  }
+);
 
 </script>
 
